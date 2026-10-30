@@ -1,14 +1,74 @@
 const $=s=>document.querySelector(s);
-const targetMonth=9;
-function countdown(){const now=new Date(),target=new Date(now.getFullYear(),targetMonth,31,0,0,0),d=target-now;if(d<=0){['days','hours','minutes','seconds'].forEach(x=>$('#'+x).textContent='00');
-    $('#countNote').textContent="It's your day, princess. Happy birthday! ♡";
-    return}let n=Math.floor(d/1000);
-    $('#days').textContent=String(Math.floor(n/86400)).padStart(2,'0');
-    $('#hours').textContent=String(Math.floor(n%86400/3600)).padStart(2,'0');
-    $('#minutes').textContent=String(Math.floor(n%3600/60)).padStart(2,'0');
-    $('#seconds').textContent=String(n%60).padStart(2,'0');
-    $('#countNote').textContent='Counting down to 31 October ♡'}countdown();
-    setInterval(countdown,1000);
+const targetMonth = 9;
+let birthdayCelebrationStarted = false;
+
+function startBirthdayCelebration() {
+  if (birthdayCelebrationStarted) return;
+
+  birthdayCelebrationStarted = true;
+
+  $('#countNote').textContent =
+    "It's your day, princess. Happy birthday! ♡";
+
+  $('#birthdayCelebration').hidden = false;
+
+  // Give the birthday announcement a full confetti shower.
+  burst(70);
+
+  // Make the galaxy brighter.
+  document.querySelector('.orbit')?.classList.add('birthday-glow');
+}
+
+function countdown() {
+  const now = new Date();
+  const target = new Date(
+    now.getFullYear(), targetMonth, 31, 0, 0, 0
+  );
+
+  const remaining = target - now;
+
+  if (remaining <= 0) {
+    ['days', 'hours', 'minutes', 'seconds'].forEach(id => {
+      $('#' + id).textContent = '00';
+    });
+
+    startBirthdayCelebration();
+    return;
+  }
+
+  const n = Math.floor(remaining / 1000);
+
+  $('#days').textContent =
+    String(Math.floor(n / 86400)).padStart(2, '0');
+
+  $('#hours').textContent =
+    String(Math.floor(n % 86400 / 3600)).padStart(2, '0');
+
+  $('#minutes').textContent =
+    String(Math.floor(n % 3600 / 60)).padStart(2, '0');
+
+  $('#seconds').textContent =
+    String(n % 60).padStart(2, '0');
+
+  $('#countNote').textContent =
+    'Counting down to 31 October ♡';
+}
+
+countdown();
+setInterval(countdown, 1000);
+
+// Open the birthday letter when she enters the surprise.
+$('#birthdayEnter').onclick = () => {
+  $('#birthdayCelebration').hidden = true;
+
+  $('#letterCard').hidden = false;
+  $('#envelope').textContent = '♡ Opened with love';
+
+  $('#letter').scrollIntoView({
+    behavior: 'smooth'
+  });
+};
+
 const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');
     observer.unobserve(e.target)}}),{threshold:.12});
     document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
@@ -162,12 +222,46 @@ function setup() {
 
 setup();
 $('#restart').onclick = setup;
+// Create the galaxy particles around the homepage heart
+const orbit = document.querySelector('.orbit');
+
+function createGalaxy() {
+  if (!orbit) return;
+
+  orbit.querySelectorAll('.galaxy-particle').forEach(p => p.remove());
+
+  const colors = ['#d2a3ff', '#67e8f9', '#ff86bd', '#ffffff'];
+  const size = orbit.clientWidth;
+  const particleCount = 65;
+
+  for (let i = 0; i < particleCount; i++) {
+    const particle = document.createElement('span');
+    particle.className = 'galaxy-particle';
+
+    const distance = size * (0.28 + Math.random() * 0.22);
+    const duration = 4 + Math.random() * 9;
+
+    particle.style.setProperty('--radius', `${distance}px`);
+    particle.style.setProperty('--size', `${1.5 + Math.random() * 3}px`);
+    particle.style.setProperty('--duration', `${duration}s`);
+    particle.style.setProperty('--delay', `${-Math.random() * duration}s`);
+    particle.style.setProperty(
+      '--particle-color',
+      colors[Math.floor(Math.random() * colors.length)]
+    );
+
+    orbit.appendChild(particle);
+  }
+}
+
+createGalaxy();
+window.addEventListener('resize', createGalaxy);
 
 function burst(n = 20) {
   const box = $('#confetti');
   const chars = ['♡', '✦', '✧', '♥', '✷'];
   const colors = ['#ff86bd', '#d2a3ff', '#f4d6a1', '#fff1f8', '#67e8f9'];
-  const duration = 7000;
+  const duration = 10000;
   const end = Date.now() + duration;
 
   function drop() {
